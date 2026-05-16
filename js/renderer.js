@@ -11,7 +11,6 @@ export class QuizRenderer {
     this.engine = null;
   }
 
-  // Кешируем ссылки на DOM-элементы для быстрой работы
   _cacheElements() {
     return {
       title: document.getElementById('quiz-title'),
@@ -34,7 +33,6 @@ export class QuizRenderer {
     };
   }
 
-  // Связываем рендерер с движком
   bindEngine(engine) {
     this.engine = engine;
     engine.on('change', (state) => this._renderState(state));
@@ -50,12 +48,12 @@ export class QuizRenderer {
   }
 
   showLoading() { this.elements.loading.hidden = false; }
+  
   showError() {
     this.elements.loading.hidden = true;
     this.elements.error.hidden = false;
   }
 
-  // Переключение видимости основных блоков
   _showState(name) {
     this.elements.loading.hidden = true;
     this.elements.error.hidden = true;
@@ -71,7 +69,6 @@ export class QuizRenderer {
     }
   }
 
-  // Отрисовка текущего состояния викторины
   _renderState(state) {
     this._showState('quiz');
     this.elements.title.textContent = state.title;
@@ -81,11 +78,9 @@ export class QuizRenderer {
     this._renderImage(state.currentQuestion.image, state.currentIndex, state.totalQuestions);
     this._renderOptions(state);
 
-    // Логика кнопок навигации
     this.elements.btnPrev.hidden = !state.canGoPrev;
     this.elements.btnNext.textContent = (state.currentIndex === state.totalQuestions - 1 && !state.isFinished) ? 'Завершить' : 'Далее';
     
-    // В строгом режиме кнопка "Далее" активна только после ответа
     const isStrictMode = !state.settings.allowBackNavigation;
     this.elements.btnNext.disabled = state.isFinished || (isStrictMode && !state.isAnswered);
   }
@@ -96,13 +91,11 @@ export class QuizRenderer {
     this.elements.progressText.textContent = `${current} / ${total}`;
   }
 
-  // Динамическая подгрузка текущего изображения + предзагрузка следующего
   _renderImage(imagePath, currentIndex, total) {
     if (imagePath) {
       this.elements.imageWrapper.hidden = false;
       this.elements.questionImage.src = getQuizImageUrl(this.quizId, imagePath);
 
-      // Предзагрузка следующего (если есть)
       if (currentIndex < total - 1) {
         const nextQuestion = this.engine.questions[currentIndex + 1];
         if (nextQuestion?.image) {
@@ -115,7 +108,6 @@ export class QuizRenderer {
     }
   }
 
-  // Генерация кнопок вариантов ответа
   _renderOptions(state) {
     const { currentQuestion, selectedAnswer, settings, isFinished } = state;
     this.elements.optionsList.innerHTML = '';
@@ -123,3 +115,46 @@ export class QuizRenderer {
     currentQuestion.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.type = 'button';
+      btn.className = 'option-btn';
+      btn.textContent = opt;
+      btn.setAttribute('aria-pressed', selectedAnswer === idx);
+
+      if (selectedAnswer !== null) {
+        if (!settings.allowBackNavigation) {
+          if (idx === currentQuestion.correct) btn.classList.add('correct');
+          else if (idx === selectedAnswer) btn.classList.add('incorrect');
+        } else {
+          if (idx === selectedAnswer) btn.classList.add('selected');
+        }
+      }
+
+      btn.disabled = isFinished || (!settings.allowBackNavigation && selectedAnswer !== null);
+      btn.addEventListener('click', () => this.engine.selectAnswer(idx));
+      this.elements.optionsList.appendChild(btn);
+    });
+  }
+
+  _showResults(result) {
+    this._showState('results');
+    this.elements.scoreSummary.textContent = `Ваш результат: ${result.score} из ${result.total}`;
+    this.elements.reviewList.innerHTML = '';
+
+    const reviewData = this.engine.getReviewData();
+    reviewData.forEach(item => {
+      const el = document.createElement('div');
+      el.className = `review-item ${item.isCorrect ? 'correct' : 'incorrect'}`;
+      
+      el.innerHTML = `
+        <span class="review-icon">${item.isCorrect ? '✅' : '❌'}</span>
+        <div class="review-text">
+          <strong>${item.text}</strong>
+          <span class="user-answer">Ваш ответ: ${item.selected !== null ? item.options[item.selected] : 'Не выбран'}</span>
+          ${!item.isCorrect ? `<br><span class="correct-answer">Правильный: ${item.options[item.correct]}</span>` : ''}
+          ${item.explanation ? `<p style="margin-top:0.3rem; color:#6b7280; font-size:0.9em;">${item.explanation}</p>` : ''}
+        </div>
+      `;
+      
+      this.elements.reviewList.appendChild(el);
+    });
+  }
+}
