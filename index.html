@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Викторины по истории городов для школьников">
+    <title>Исторические викторины</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1>Исторические викторины</h1>
+            <p>Выберите тему и проверьте свои знания</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="quiz-list" class="quiz-grid" aria-live="polite">
+            <div class="loading-state">Загрузка списка викторин...</div>
+        </section>
+        <section id="error-state" class="error-state" hidden>
+            <p>Не удалось загрузить список викторин. Проверьте подключение или попробуйте позже.</p>
+            <button type="button" onclick="location.reload()">Обновить</button>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; <span id="year"></span> Исторические викторины. Размещено на GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    <script src="js/index.js"></script>
+</body>
+</html>
