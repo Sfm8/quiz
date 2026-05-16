@@ -29,7 +29,7 @@ export class QuizRenderer {
       resultsContainer: document.getElementById('results-container'),
       scoreSummary: document.getElementById('score-summary'),
       reviewList: document.getElementById('review-list'),
-      btnRestart: document.getElementById('btn-restart'),
+      btnRestart: document.getElementById('btn-restart')
     };
   }
 
@@ -47,7 +47,9 @@ export class QuizRenderer {
     });
   }
 
-  showLoading() { this.elements.loading.hidden = false; }
+  showLoading() {
+    this.elements.loading.hidden = false;
+  }
   
   showError() {
     this.elements.loading.hidden = true;
@@ -79,7 +81,12 @@ export class QuizRenderer {
     this._renderOptions(state);
 
     this.elements.btnPrev.hidden = !state.canGoPrev;
-    this.elements.btnNext.textContent = (state.currentIndex === state.totalQuestions - 1 && !state.isFinished) ? 'Завершить' : 'Далее';
+    
+    if (state.currentIndex === state.totalQuestions - 1 && !state.isFinished) {
+      this.elements.btnNext.textContent = 'Завершить';
+    } else {
+      this.elements.btnNext.textContent = 'Далее';
+    }
     
     const isStrictMode = !state.settings.allowBackNavigation;
     this.elements.btnNext.disabled = state.isFinished || (isStrictMode && !state.isAnswered);
@@ -87,8 +94,8 @@ export class QuizRenderer {
 
   _updateProgress(current, total) {
     const percent = (current / total) * 100;
-    this.elements.progressFill.style.width = `${percent}%`;
-    this.elements.progressText.textContent = `${current} / ${total}`;
+    this.elements.progressFill.style.width = percent + '%';
+    this.elements.progressText.textContent = current + ' / ' + total;
   }
 
   _renderImage(imagePath, currentIndex, total) {
@@ -98,7 +105,7 @@ export class QuizRenderer {
 
       if (currentIndex < total - 1) {
         const nextQuestion = this.engine.questions[currentIndex + 1];
-        if (nextQuestion?.image) {
+        if (nextQuestion && nextQuestion.image) {
           this.preloadImg = new Image();
           this.preloadImg.src = getQuizImageUrl(this.quizId, nextQuestion.image);
         }
@@ -109,7 +116,11 @@ export class QuizRenderer {
   }
 
   _renderOptions(state) {
-    const { currentQuestion, selectedAnswer, settings, isFinished } = state;
+    const currentQuestion = state.currentQuestion;
+    const selectedAnswer = state.selectedAnswer;
+    const settings = state.settings;
+    const isFinished = state.isFinished;
+    
     this.elements.optionsList.innerHTML = '';
 
     currentQuestion.options.forEach((opt, idx) => {
@@ -121,10 +132,15 @@ export class QuizRenderer {
 
       if (selectedAnswer !== null) {
         if (!settings.allowBackNavigation) {
-          if (idx === currentQuestion.correct) btn.classList.add('correct');
-          else if (idx === selectedAnswer) btn.classList.add('incorrect');
+          if (idx === currentQuestion.correct) {
+            btn.classList.add('correct');
+          } else if (idx === selectedAnswer) {
+            btn.classList.add('incorrect');
+          }
         } else {
-          if (idx === selectedAnswer) btn.classList.add('selected');
+          if (idx === selectedAnswer) {
+            btn.classList.add('selected');
+          }
         }
       }
 
@@ -136,24 +152,30 @@ export class QuizRenderer {
 
   _showResults(result) {
     this._showState('results');
-    this.elements.scoreSummary.textContent = `Ваш результат: ${result.score} из ${result.total}`;
+    this.elements.scoreSummary.textContent = 'Ваш результат: ' + result.score + ' из ' + result.total;
     this.elements.reviewList.innerHTML = '';
 
     const reviewData = this.engine.getReviewData();
     reviewData.forEach(item => {
       const el = document.createElement('div');
-      el.className = `review-item ${item.isCorrect ? 'correct' : 'incorrect'}`;
+      const statusClass = item.isCorrect ? 'correct' : 'incorrect';
+      const icon = item.isCorrect ? '✅' : '❌';
       
-      el.innerHTML = `
-        <span class="review-icon">${item.isCorrect ? '✅' : '❌'}</span>
-        <div class="review-text">
-          <strong>${item.text}</strong>
-          <span class="user-answer">Ваш ответ: ${item.selected !== null ? item.options[item.selected] : 'Не выбран'}</span>
-          ${!item.isCorrect ? `<br><span class="correct-answer">Правильный: ${item.options[item.correct]}</span>` : ''}
-          ${item.explanation ? `<p style="margin-top:0.3rem; color:#6b7280; font-size:0.9em;">${item.explanation}</p>` : ''}
-        </div>
-      `;
+      let html = '<span class="review-icon">' + icon + '</span>';
+      html += '<div class="review-text">';
+      html += '<strong>' + item.text + '</strong>';
+      html += '<span class="user-answer">Ваш ответ: ' + (item.selected !== null ? item.options[item.selected] : 'Не выбран') + '</span>';
       
+      if (!item.isCorrect) {
+        html += '<br><span class="correct-answer">Правильный: ' + item.options[item.correct] + '</span>';
+      }
+      if (item.explanation) {
+        html += '<p style="margin-top:0.3rem; color:#6b7280; font-size:0.9em;">' + item.explanation + '</p>';
+      }
+      html += '</div>';
+      
+      el.className = 'review-item ' + statusClass;
+      el.innerHTML = html;
       this.elements.reviewList.appendChild(el);
     });
   }
