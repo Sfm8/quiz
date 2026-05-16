@@ -1,5 +1,5 @@
-// js/renderer.js
-// Управление DOM: отрисовка вопросов, изображений, навигации и экрана результатов
+// js/renderer.js V3
+console.log('RENDERER V3 LOADED');
 
 import { getQuizImageUrl } from './config.js';
 
@@ -76,7 +76,6 @@ export class QuizRenderer {
     this.elements.title.textContent = state.title;
     this._updateProgress(state.progress, state.totalQuestions);
     this.elements.questionText.textContent = state.currentQuestion.text;
-    
     this._renderImage(state.currentQuestion.image, state.currentIndex, state.totalQuestions);
     this._renderOptions(state);
 
@@ -88,12 +87,12 @@ export class QuizRenderer {
       this.elements.btnNext.textContent = 'Далее';
     }
     
-    const isStrictMode = !state.settings.allowBackNavigation;
+    var isStrictMode = !state.settings.allowBackNavigation;
     this.elements.btnNext.disabled = state.isFinished || (isStrictMode && !state.isAnswered);
   }
 
   _updateProgress(current, total) {
-    const percent = (current / total) * 100;
+    var percent = (current / total) * 100;
     this.elements.progressFill.style.width = percent + '%';
     this.elements.progressText.textContent = current + ' / ' + total;
   }
@@ -104,7 +103,7 @@ export class QuizRenderer {
       this.elements.questionImage.src = getQuizImageUrl(this.quizId, imagePath);
 
       if (currentIndex < total - 1) {
-        const nextQuestion = this.engine.questions[currentIndex + 1];
+        var nextQuestion = this.engine.questions[currentIndex + 1];
         if (nextQuestion && nextQuestion.image) {
           this.preloadImg = new Image();
           this.preloadImg.src = getQuizImageUrl(this.quizId, nextQuestion.image);
@@ -116,15 +115,15 @@ export class QuizRenderer {
   }
 
   _renderOptions(state) {
-    const currentQuestion = state.currentQuestion;
-    const selectedAnswer = state.selectedAnswer;
-    const settings = state.settings;
-    const isFinished = state.isFinished;
+    var currentQuestion = state.currentQuestion;
+    var selectedAnswer = state.selectedAnswer;
+    var settings = state.settings;
+    var isFinished = state.isFinished;
     
     this.elements.optionsList.innerHTML = '';
 
-    currentQuestion.options.forEach((opt, idx) => {
-      const btn = document.createElement('button');
+    currentQuestion.options.forEach(function(opt, idx) {
+      var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'option-btn';
       btn.textContent = opt;
@@ -145,9 +144,11 @@ export class QuizRenderer {
       }
 
       btn.disabled = isFinished || (!settings.allowBackNavigation && selectedAnswer !== null);
-      btn.addEventListener('click', () => this.engine.selectAnswer(idx));
+      btn.addEventListener('click', function() {
+        state.engine.selectAnswer(idx);
+      }.bind(this));
       this.elements.optionsList.appendChild(btn);
-    });
+    }.bind(this));
   }
 
   _showResults(result) {
@@ -155,13 +156,13 @@ export class QuizRenderer {
     this.elements.scoreSummary.textContent = 'Ваш результат: ' + result.score + ' из ' + result.total;
     this.elements.reviewList.innerHTML = '';
 
-    const reviewData = this.engine.getReviewData();
-    reviewData.forEach(item => {
-      const el = document.createElement('div');
-      const statusClass = item.isCorrect ? 'correct' : 'incorrect';
-      const icon = item.isCorrect ? '✅' : '❌';
+    var reviewData = this.engine.getReviewData();
+    reviewData.forEach(function(item) {
+      var el = document.createElement('div');
+      var statusClass = item.isCorrect ? 'correct' : 'incorrect';
+      var icon = item.isCorrect ? '✅' : '❌';
       
-      let html = '<span class="review-icon">' + icon + '</span>';
+      var html = '<span class="review-icon">' + icon + '</span>';
       html += '<div class="review-text">';
       html += '<strong>' + item.text + '</strong>';
       html += '<span class="user-answer">Ваш ответ: ' + (item.selected !== null ? item.options[item.selected] : 'Не выбран') + '</span>';
@@ -177,6 +178,6 @@ export class QuizRenderer {
       el.className = 'review-item ' + statusClass;
       el.innerHTML = html;
       this.elements.reviewList.appendChild(el);
-    });
+    }.bind(this));
   }
 }
