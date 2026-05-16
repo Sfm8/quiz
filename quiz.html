@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Прохождение исторической викторины">
+    <title>Викторина</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/quiz.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="back-link" aria-label="Вернуться на главную">← На главную</a>
+            <h1 id="quiz-title">Загрузка...</h1>
+            <div id="quiz-progress" class="progress-bar" hidden>
+                <div id="progress-fill" class="progress-fill"></div>
+                <span id="progress-text" class="progress-text"></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Состояние загрузки -->
+        <div id="loading-state" class="loading-state">Загрузка вопросов...</div>
+        
+        <!-- Состояние ошибки -->
+        <div id="error-state" class="error-state" hidden>
+            <p>Не удалось загрузить викторину. Возможно, она не существует или файл повреждён.</p>
+            <a href="index.html" class="btn btn-primary">Вернуться на главную</a>
+        </div>
+
+        <!-- Основной интерфейс вопроса -->
+        <section id="quiz-container" class="quiz-container" hidden>
+            <div id="image-wrapper" class="image-wrapper" hidden>
+                <img id="question-image" src="" alt="Иллюстрация к вопросу" loading="lazy">
+            </div>
+            <p id="question-text" class="question-text"></p>
+            <div id="options-list" class="options-list" role="radiogroup" aria-label="Варианты ответа"></div>
+            
+            <div class="quiz-nav">
+                <button id="btn-prev" class="btn btn-secondary" hidden>Назад</button>
+                <button id="btn-next" class="btn btn-primary" disabled>Далее</button>
+            </div>
+        </section>
+
+        <!-- Экран результатов -->
+        <section id="results-container" class="results-container" hidden>
+            <h2>Результаты</h2>
+            <div id="score-summary" class="score-summary"></div>
+            <div id="review-list" class="review-list" role="list"></div>
+            <div class="results-nav">
+                <button id="btn-restart" class="btn btn-primary">Пройти снова</button>
+                <a href="index.html" class="btn btn-secondary">К списку викторин</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; <span id="year"></span> Исторические викторины</p>
+        </div>
+    </footer>
+
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    
+    <!-- Точка входа и модули логики -->
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/engine.js"></script>
+    <script type="module" src="js/renderer.js"></script>
+    <script type="module" src="js/quiz.js"></script>
+</body>
+</html>
