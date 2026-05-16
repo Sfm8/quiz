@@ -1,5 +1,5 @@
-// js/renderer.js V4 (ИСПРАВЛЕНА ОШИБКА КЛИКОВ)
-console.log('[Renderer] V4 Loaded');
+// js/renderer.js V5 (Event Delegation)
+console.log('[Renderer] V5 Loaded');
 
 import { getQuizImageUrl } from './config.js';
 
@@ -7,8 +7,8 @@ export class QuizRenderer {
   constructor(quizId) {
     this.quizId = quizId;
     this.elements = this._cacheElements();
-    this.preloadImg = null;
     this.engine = null;
+    this._bindContainerClick(); // Слушаем клики на контейнере, а не на кнопках
   }
 
   _cacheElements() {
@@ -33,16 +33,31 @@ export class QuizRenderer {
     };
   }
 
+  // Делегирование: один слушатель ловит клики по любым кнопкам внутри контейнера
+  _bindContainerClick() {
+    const self = this;
+    this.elements.optionsList.addEventListener('click', function(e) {
+      const btn = e.target.closest('.option-btn');
+      if (!btn || btn.disabled) return;
+
+      console.log('[Renderer] Клик по варианту, index:', btn.dataset.index);
+      if (self.engine) {
+        self.engine.selectAnswer(Number(btn.dataset.index));
+      } else {
+        console.error('[Renderer] Движок не подключен!');
+      }
+    });
+  }
+
   bindEngine(engine) {
-    var self = this;
+    const self = this;
     this.engine = engine;
-    
     engine.on('change', function(state) { self._renderState(state); });
     engine.on('finish', function(result) { self._showResults(result); });
 
-    this.elements.btnNext.addEventListener('click', function() { engine.goNext(); });
-    this.elements.btnPrev.addEventListener('click', function() { engine.goPrev(); });
-    this.elements.btnRestart.addEventListener('click', function() {
+    this.elements.btnNext.addEventListener('click', () => engine.goNext());
+    this.elements.btnPrev.addEventListener('click', () => engine.goPrev());
+    this.elements.btnRestart.addEventListener('click', () => {
       self.elements.resultsContainer.hidden = true;
       self.elements.quizContainer.hidden = false;
       engine.restart();
@@ -50,7 +65,6 @@ export class QuizRenderer {
   }
 
   showLoading() { this.elements.loading.hidden = false; }
-  
   showError() {
     this.elements.loading.hidden = true;
     this.elements.error.hidden = false;
@@ -72,29 +86,24 @@ export class QuizRenderer {
   }
 
   _renderState(state) {
-    console.log('[Renderer] State updated:', state.currentIndex, 'Answered:', state.isAnswered);
+    console.log('[Renderer] State: Q', state.currentIndex, 'Answered:', state.isAnswered);
     this._showState('quiz');
     this.elements.title.textContent = state.title;
     this._updateProgress(state.progress, state.totalQuestions);
     this.elements.questionText.textContent = state.currentQuestion.text;
-    
     this._renderImage(state.currentQuestion.image, state.currentIndex, state.totalQuestions);
     this._renderOptions(state);
-
     this.elements.btnPrev.hidden = !state.canGoPrev;
-    
-    if (state.currentIndex === state.totalQuestions - 1 && !state.isFinished) {
-      this.elements.btnNext.textContent = 'Завершить';
-    } else {
-      this.elements.btnNext.textContent = 'Далее';
-    }
-    
-    var isStrictMode = !state.settings.allowBackNavigation;
+
+    this.elements.btnNext.textContent = (state.currentIndex === state.totalQuestions - 1 && !state.isFinished) ? 'Завершить' : 'Далее';
+
+    const isStrictMode = !state.settings.allowBackNavigation;
     this.elements.btnNext.disabled = state.isFinished || (isStrictMode && !state.isAnswered);
+    console.log('[Renderer] Кнопка "Далее" заблокирована:', this.elements.btnNext.disabled);
   }
 
   _updateProgress(current, total) {
-    var percent = (current / total) * 100;
+    const percent = (current / total) * 100;
     this.elements.progressFill.style.width = percent + '%';
     this.elements.progressText.textContent = current + ' / ' + total;
   }
@@ -103,33 +112,25 @@ export class QuizRenderer {
     if (imagePath) {
       this.elements.imageWrapper.hidden = false;
       this.elements.questionImage.src = getQuizImageUrl(this.quizId, imagePath);
-
-      if (currentIndex < total - 1) {
-        var nextQuestion = this.engine.questions[currentIndex + 1];
-        if (nextQuestion && nextQuestion.image) {
-          this.preloadImg = new Image();
-          this.preloadImg.src = getQuizImageUrl(this.quizId, nextQuestion.image);
-        }
-      }
     } else {
       this.elements.imageWrapper.hidden = true;
     }
   }
 
   _renderOptions(state) {
-    var self = this;
-    var currentQuestion = state.currentQuestion;
-    var selectedAnswer = state.selectedAnswer;
-    var settings = state.settings;
-    var isFinished = state.isFinished;
-    
+    const currentQuestion = state.currentQuestion;
+    const selectedAnswer = state.selectedAnswer;
+    const settings = state.settings;
+    const isFinished = state.isFinished;
+
     this.elements.optionsList.innerHTML = '';
 
-    currentQuestion.options.forEach(function(opt, idx) {
-      var btn = document.createElement('button');
+    currentQuestion.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'option-btn';
       btn.textContent = opt;
+      btn.dataset.index = idx; // Сохраняем индекс в data-атрибут
       btn.setAttribute('aria-pressed', selectedAnswer === idx);
 
       if (selectedAnswer !== null) {
@@ -142,13 +143,8 @@ export class QuizRenderer {
       }
 
       btn.disabled = isFinished || (!settings.allowBackNavigation && selectedAnswer !== null);
-      
-      btn.addEventListener('click', function() {
-        console.log('[Renderer] Button clicked, index:', idx);
-        self.engine.selectAnswer(idx);
-      });
       this.elements.optionsList.appendChild(btn);
-    }.bind(this));
+    });
   }
 
   _showResults(result) {
@@ -156,18 +152,17 @@ export class QuizRenderer {
     this.elements.scoreSummary.textContent = 'Ваш результат: ' + result.score + ' из ' + result.total;
     this.elements.reviewList.innerHTML = '';
 
-    var self = this;
-    var reviewData = this.engine.getReviewData();
-    reviewData.forEach(function(item) {
-      var el = document.createElement('div');
-      var statusClass = item.isCorrect ? 'correct' : 'incorrect';
-      var icon = item.isCorrect ? '✅' : '❌';
+    const self = this;
+    const reviewData = this.engine.getReviewData();
+    reviewData.forEach((item) => {
+      const el = document.createElement('div');
+      const statusClass = item.isCorrect ? 'correct' : 'incorrect';
+      const icon = item.isCorrect ? '✅' : '❌';
       
-      var html = '<span class="review-icon">' + icon + '</span>';
+      let html = '<span class="review-icon">' + icon + '</span>';
       html += '<div class="review-text">';
       html += '<strong>' + item.text + '</strong>';
       html += '<span class="user-answer">Ваш ответ: ' + (item.selected !== null ? item.options[item.selected] : 'Не выбран') + '</span>';
-      
       if (!item.isCorrect) {
         html += '<br><span class="correct-answer">Правильный: ' + item.options[item.correct] + '</span>';
       }
