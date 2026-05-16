@@ -1,0 +1,245 @@
+/* === Прогресс-бар === */
+.progress-bar {
+    position: relative;
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+.progress-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 0%;
+    background: var(--color-primary);
+    transition: width 0.3s ease;
+}
+.progress-text {
+    position: absolute;
+    right: 0; top: -20px;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+/* === Контейнер вопроса === */
+.quiz-container {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    margin: 1rem 0;
+}
+
+.image-wrapper {
+    margin-bottom: 1.25rem;
+    text-align: center;
+    background: #f9fafb;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.image-wrapper img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+
+.question-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+}
+
+/* === Варианты ответов === */
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
+    position: relative;
+}
+.option-btn:hover {
+    border-color: var(--color-primary);
+    background: #f0f7ff;
+}
+.option-btn:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Состояния выбора */
+.option-btn.selected {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+    font-weight: 500;
+}
+.option-btn.correct {
+    border-color: #16a34a;
+    background: #f0fdf4;
+}
+.option-btn.incorrect {
+    border-color: var(--color-error);
+    background: #fef2f2;
+}
+.option-btn .feedback-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+}
+
+/* === Навигация === */
+.quiz-nav {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+/* === Экран результатов === */
+.results-container {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    margin: 1rem 0;
+}
+.results-container h2 {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.score-summary {
+    text-align: center;
+    padding: 1rem;
+    background: #f0f9ff;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+.review-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--color-bg);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+.review-item.correct { border-left: 4px solid #16a34a; }
+.review-item.incorrect { border-left: 4px solid var(--color-error); }
+.review-icon {
+    font-weight: bold;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+.review-text { flex: 1; }
+.review-text strong { display: block; margin-bottom: 0.25rem; }
+.review-text .user-answer { color: var(--color-text-secondary); }
+.review-text .correct-answer { color: #16a34a; font-weight: 500; }
+
+.results-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* === Кнопки (базовые) === */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background var(--transition), transform var(--transition);
+}
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+.btn-secondary {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+.btn-secondary:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.back-link {
+    display: inline-block;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    transition: color var(--transition);
+}
+.back-link:hover { color: var(--color-primary); }
+
+/* === Адаптивность === */
+@media (min-width: 640px) {
+    .quiz-container, .results-container { padding: 2rem; }
+    .question-text { font-size: 1.25rem; }
+    .results-nav { flex-direction: row; justify-content: center; }
+}
+
+/* === Скроллбар для списка разбора === */
+.review-list::-webkit-scrollbar { width: 6px; }
+.review-list::-webkit-scrollbar-track { background: transparent; }
+.review-list::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+.review-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
