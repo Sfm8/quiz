@@ -1,5 +1,5 @@
-// js/renderer.js V3
-console.log('RENDERER V3 LOADED');
+// js/renderer.js V4 (ИСПРАВЛЕНА ОШИБКА КЛИКОВ)
+console.log('[Renderer] V4 Loaded');
 
 import { getQuizImageUrl } from './config.js';
 
@@ -34,22 +34,22 @@ export class QuizRenderer {
   }
 
   bindEngine(engine) {
+    var self = this;
     this.engine = engine;
-    engine.on('change', (state) => this._renderState(state));
-    engine.on('finish', (result) => this._showResults(result));
+    
+    engine.on('change', function(state) { self._renderState(state); });
+    engine.on('finish', function(result) { self._showResults(result); });
 
-    this.elements.btnNext.addEventListener('click', () => engine.goNext());
-    this.elements.btnPrev.addEventListener('click', () => engine.goPrev());
-    this.elements.btnRestart.addEventListener('click', () => {
-      this.elements.resultsContainer.hidden = true;
-      this.elements.quizContainer.hidden = false;
+    this.elements.btnNext.addEventListener('click', function() { engine.goNext(); });
+    this.elements.btnPrev.addEventListener('click', function() { engine.goPrev(); });
+    this.elements.btnRestart.addEventListener('click', function() {
+      self.elements.resultsContainer.hidden = true;
+      self.elements.quizContainer.hidden = false;
       engine.restart();
     });
   }
 
-  showLoading() {
-    this.elements.loading.hidden = false;
-  }
+  showLoading() { this.elements.loading.hidden = false; }
   
   showError() {
     this.elements.loading.hidden = true;
@@ -72,10 +72,12 @@ export class QuizRenderer {
   }
 
   _renderState(state) {
+    console.log('[Renderer] State updated:', state.currentIndex, 'Answered:', state.isAnswered);
     this._showState('quiz');
     this.elements.title.textContent = state.title;
     this._updateProgress(state.progress, state.totalQuestions);
     this.elements.questionText.textContent = state.currentQuestion.text;
+    
     this._renderImage(state.currentQuestion.image, state.currentIndex, state.totalQuestions);
     this._renderOptions(state);
 
@@ -115,6 +117,7 @@ export class QuizRenderer {
   }
 
   _renderOptions(state) {
+    var self = this;
     var currentQuestion = state.currentQuestion;
     var selectedAnswer = state.selectedAnswer;
     var settings = state.settings;
@@ -131,22 +134,19 @@ export class QuizRenderer {
 
       if (selectedAnswer !== null) {
         if (!settings.allowBackNavigation) {
-          if (idx === currentQuestion.correct) {
-            btn.classList.add('correct');
-          } else if (idx === selectedAnswer) {
-            btn.classList.add('incorrect');
-          }
+          if (idx === currentQuestion.correct) btn.classList.add('correct');
+          else if (idx === selectedAnswer) btn.classList.add('incorrect');
         } else {
-          if (idx === selectedAnswer) {
-            btn.classList.add('selected');
-          }
+          if (idx === selectedAnswer) btn.classList.add('selected');
         }
       }
 
       btn.disabled = isFinished || (!settings.allowBackNavigation && selectedAnswer !== null);
+      
       btn.addEventListener('click', function() {
-        state.engine.selectAnswer(idx);
-      }.bind(this));
+        console.log('[Renderer] Button clicked, index:', idx);
+        self.engine.selectAnswer(idx);
+      });
       this.elements.optionsList.appendChild(btn);
     }.bind(this));
   }
@@ -156,6 +156,7 @@ export class QuizRenderer {
     this.elements.scoreSummary.textContent = 'Ваш результат: ' + result.score + ' из ' + result.total;
     this.elements.reviewList.innerHTML = '';
 
+    var self = this;
     var reviewData = this.engine.getReviewData();
     reviewData.forEach(function(item) {
       var el = document.createElement('div');
@@ -177,7 +178,7 @@ export class QuizRenderer {
       
       el.className = 'review-item ' + statusClass;
       el.innerHTML = html;
-      this.elements.reviewList.appendChild(el);
-    }.bind(this));
+      self.elements.reviewList.appendChild(el);
+    });
   }
 }
